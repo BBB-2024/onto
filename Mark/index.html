@@ -8,7 +8,7 @@
 <body>
     
 </body>
-<script src="kettes.js"></script>
+
 <script>
     function index() { 
         let xhttp = new XMLHttpRequest();
@@ -25,9 +25,12 @@
                 };
                 response.data.questions.forEach((element)=>{
                     let question = element;
-                    let varos = question.params.map.cities.lenght;
-                    let ut = 0;
+                    let varos = question.params.map.cities.length;
+                    let ut = question.params.map.roads.length;
                     let utszakasz = 0;
+                    question.params.map.roads.forEach(element => {
+                        utszakasz += element.tiles.length-1;
+                    });
 
                     let answer = [varos, ut, utszakasz];
 
