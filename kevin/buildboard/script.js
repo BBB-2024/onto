@@ -65,7 +65,7 @@ async function getter(){
   console.log("Getting tasks, teamcode:",teamCode);
   const tasks = await fetchTasks(teamCode);
   renderTasks(tasks);
-  setTimeout(getter,1000);
+  setTimeout(getter,5000);
 }
 
 // Event listener for the Load Tasks button
