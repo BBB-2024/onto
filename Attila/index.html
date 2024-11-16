@@ -13,7 +13,39 @@
         let xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = () => {
             if (xhttp.readyState == 4 && xhttp.status == 200) {
-                console.log(JSON.parse(xhttp.response));
+                let response = JSON.parse(xhttp.response);
+                console.log(response);
+                let responseData = {
+                    original_data:response.data,
+                    id:response.data.ID,
+                    teamcode:"be98b0b567b9887e75e5",
+                    original_hash:response.hash,
+                    answer_data:[]
+                };
+                response.data.questions.forEach((element)=>{
+                    let question = element;
+                    let num1 = element.params.number1;
+                    let num2 = element.params.number2;
+                    let answer = 0;
+                    if (element.params.type == 'ADDITION') {
+                        answer = num1+num2;
+                    } else {
+                        answer = num1-num2;
+                    }
+                    responseData.answer_data.push({
+                        'id':element.ID,
+                        'answer':answer
+                    });
+                });
+                console.log(responseData);
+                let xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = ( ) => {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        console.log(xhr.response);
+                    }
+                }
+                xhr.open('POST','http://bitkozpont.mik.uni-pannon.hu/2024/answer.php',true)
+                xhr.send(JSON.stringify(responseData));
             }
         }
         xhttp.open('POST','http://bitkozpont.mik.uni-pannon.hu/2024/gettasks.php',true);
