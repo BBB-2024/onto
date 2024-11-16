@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>feladat4</title>
+    </head>
+    <body>
+        <script>
+            function index() {
+                let xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = () => {
+                    if (xhttp.readyState == 4 && xhttp.status == 200) {
+                        let response = JSON.parse(xhttp.response);
+                        console.log(response);
+                        let responseData = {
+                            original_data: response.data,
+                            id: response.data.ID,
+                            teamcode: "be98b0b567b9887e75e5",
+                            original_hash: response.hash,
+                            answer_data: [],
+                        };
+                        response.data.questions.forEach((question) => {
+                            console.log("Processing question ", question.order);
+                            console.log(question);
+                            answer = [];
+                            //console.log(question.params.road_id);
+                            //console.log(question.params.map.roads);
+                            question.params.map.roads.forEach((road) => {
+                                //console.log("road ", road);
+                                for (let i = 0; i < road.tiles.length; i++) {
+                                    //console.log("road.tiles ", road.tiles);
+                                    const tile = road.tiles[i];
+                                    //console.log("NUM ", question.params.map.roads[question.params.road_id - 1].tiles.length);
+                                    for (let j = 0; j < question.params.map.roads[question.params.road_id - 1].tiles.length; j++) {
+                                        const target = question.params.map.roads[question.params.road_id - 1].tiles[j];
+                                        //console.log("target", target);
+                                        //console.log("tile ", tile);
+                                        if (tile.x == target.x && tile.y == target.y) {
+                                            console.log("tile ", question.params.road_id, road.id);
+                                            if (!answer.includes(road.id) && question.params.road_id != road.id) {
+                                                answer.push(road.id);
+                                            }
+                                        }
+                                    }
+                                }
+                            });
+                            console.log(answer);
+
+                            responseData.answer_data.push({
+                                id: question.ID,
+                                answer: answer,
+                            });
+                        });
+                        console.log(responseData);
+                        let xhr = new XMLHttpRequest();
+                        xhr.onreadystatechange = () => {
+                            if (xhr.readyState == 4 && xhr.status == 200) {
+                                console.log(xhr.response);
+                            }
+                        };
+                        xhr.open("POST", "http://bitkozpont.mik.uni-pannon.hu/2024/answer.php", true);
+                        xhr.send(JSON.stringify(responseData));
+                    }
+                };
+                xhttp.open("POST", "http://bitkozpont.mik.uni-pannon.hu/2024/gettasks.php", true);
+                xhttp.send(
+                    JSON.stringify({
+                        id: "4",
+                        teamcode: "be98b0b567b9887e75e5",
+                    })
+                );
+            }
+            index();
+        </script>
+    </body>
+</html>
