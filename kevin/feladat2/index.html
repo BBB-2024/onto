@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Map Visualizer</title>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+  </body>
+  <script>
+    function index() {
+      let scale = 5;
+      let xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = () => {
+        if (xhttp.readyState == 4 && xhttp.status == 200) {
+          let response = JSON.parse(xhttp.response);
+          console.log(response.data.questions);
+          var c = document.getElementById("canvas");
+          var ctx = c.getContext("2d");
+          let question = response.data.questions[4];
+          console.log(question);
+          ctx.canvas.width = window.innerWidth;
+          ctx.canvas.height = window.innerHeight;
+          question.params.map.roads.forEach((road) => {
+            ctx.beginPath();
+            ctx.strokeStyle = `rgb(
+            ${Math.floor(Math.random() * 256)}
+            ${Math.floor(Math.random() * 256)}
+            ${Math.floor(Math.random() * 256)})`;
+            ctx.moveTo(road.tiles[0].x * scale, road.tiles[0].y * scale);
+            road.tiles.forEach((tile) => {
+              ctx.lineTo(tile.x * scale, tile.y * scale);
+            });
+            ctx.lineWidth = 3;
+            ctx.stroke();
+          });
+          question.params.map.cities.forEach((city) => {
+            ctx.beginPath();
+            ctx.arc(
+              city.position.x * scale,
+              city.position.y * scale,
+              city.size * scale,
+              0,
+              2 * Math.PI
+            );
+            ctx.fillStyle = "green";
+            ctx.fill();
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = "black";
+            ctx.stroke();
+          });
+        }
+      };
+      xhttp.open(
+        "POST",
+        "http://bitkozpont.mik.uni-pannon.hu/2024/gettasks.php",
+        true
+      );
+      xhttp.send(
+        JSON.stringify({
+          id: "2",
+          teamcode: "be98b0b567b9887e75e5",
+        })
+      );
+    }
+    index();
+  </script>
+</html>
