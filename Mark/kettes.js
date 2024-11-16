@@ -13,10 +13,11 @@ class City {
 }
 
 class Road {
-    constructor(start,end,cities) {
+    constructor(start, end, cities = [], tiles = []) {
         this.start = start;
         this.end = end;
         this.cities = cities;
+        this.tiles = tiles;
     }
 }
 
