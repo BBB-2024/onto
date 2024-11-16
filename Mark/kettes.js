@@ -1,3 +1,25 @@
+class Point {
+    constructor(x,y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+
+class City {
+    constructor(position,size) {
+        this.position = position;
+        this.size = size;
+    }
+}
+
+class Road {
+    constructor(start,end,cities) {
+        this.start = start;
+        this.end = end;
+        this.cities = cities;
+    }
+}
+
 function index() { 
     let xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = () => {
