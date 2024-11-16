@@ -22,39 +22,43 @@
                         };
                         response.data.questions.forEach((question) => {
                             console.log("Processing question ", question.order);
-                            console.log(question);
-                            answer = [];
-                            //console.log(question.params.road_id);
-                            //console.log(question.params.map.roads);
-                            roads.forEach((road) => {
-                                //console.log("road ", road);
-                                for (let i = 0; i < road.tiles.length; i++) {
-                                    //console.log("road.tiles ", road.tiles);
-                                    const tile = road.tiles[i];
-                                    //console.log("NUM ", question.params.map.roads[question.params.road_id - 1].tiles.length);
-                                    for (let g = 0; g < roads.length; g++) {
-                                        const h = roads[g];
-                                        for (let j = 0; j < roads[h].tiles.length; j++) {
-                                            const target = roads[h].tiles[j];
-                                            //console.log("target", target);
-                                            //console.log("tile ", tile);
-                                            if (tile.x == target.x && tile.y == target.y) {
-                                                console.log("tile ", h, road.id);
-                                                if (!answer.includes(road.id) && h != road.id) {
-                                                    answer.push(road.id);
-                                                }
-                                            }
+                            let map = question.params.map;
+                            let cities = map.cities;
+
+                            // Find the worst connection
+                            let worstRatio = -Infinity;
+                            let worstPair = [];
+
+                            for (let i = 0; i < cities.length; i++) {
+                                const city1 = cities[i];
+                                for (let j = i + 1; j < cities.length; j++) {
+                                    const city2 = cities[j];
+
+                                    // Actual distance from the map
+                                    const actualDistance = city1.distances[city2.name];
+                                    // Theoretical distance (Euclidean)
+                                    const theoreticalDistance = calculateTheoreticalDistance(city1.position, city2.position);
+
+                                    if (actualDistance && theoreticalDistance) {
+                                        const ratio = ((actualDistance - theoreticalDistance) / theoreticalDistance) * 100;
+
+                                        if (ratio > worstRatio) {
+                                            worstRatio = ratio;
+                                            worstPair = [city1.name, city2.name];
                                         }
                                     }
                                 }
-                            });
-                            console.log(answer);
+                            }
 
+                            console.log("Worst pair: ", worstPair);
+
+                            // Add answer to responseData
                             responseData.answer_data.push({
                                 id: question.ID,
-                                answer: answer,
+                                answer: worstPair,
                             });
                         });
+
                         console.log(responseData);
                         let xhr = new XMLHttpRequest();
                         xhr.onreadystatechange = () => {
@@ -74,6 +78,13 @@
                     })
                 );
             }
+
+            function calculateTheoreticalDistance(pos1, pos2) {
+                const dx = pos2.x - pos1.x;
+                const dy = pos2.y - pos1.y;
+                return Math.sqrt(dx * dx + dy * dy);
+            }
+
             index();
         </script>
     </body>
