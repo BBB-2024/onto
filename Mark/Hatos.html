@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+</body>
+
+<script>
+    function index() { 
+        let xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = () => {
+            if (xhttp.readyState == 4 && xhttp.status == 200) {
+                let response = JSON.parse(xhttp.response);
+                console.log(response);
+                let responseData = {
+                    original_data:response.data,
+                    id:response.data.ID,
+                    teamcode:"be98b0b567b9887e75e5",
+                    original_hash:response.hash,
+                    answer_data:[]
+                };
+                response.data.questions.forEach((element)=>{
+                    let question = element;
+                    let varosok = question.params.map.cities;
+                    let city1;
+                    let city2;
+                    let DISTANCE = 0;
+                    for (let i = 0; i < varosok.length; i++) {
+                        if(varosok[i].name == question.params.city1){
+                            city1 = varosok[i];
+                        }
+                        if(varosok[i].name == question.params.city2){
+                            city2 = varosok[i];
+                        }
+                    }
+
+                    let xDif = city1.position.x - city2.position.x;
+                    let yDif = city1.position.y - city2.position.y;
+                    console.log(Math.sqrt((xDif*xDif) + (yDif*yDif)));
+
+                    xDif = Math.abs(xDif);
+                    yDif = Math.abs(yDif);
+                    if(xDif < yDif){
+                        DISTANCE += (Math.SQRT2 * xDif);
+                        DISTANCE += yDif;
+                    }
+                    else{
+                        DISTANCE += xDif;
+                        DISTANCE += (Math.SQRT2 * yDif);
+                    }
+                    
+                    DISTANCE = DISTANCE.toFixed(2);
+                    console.log(DISTANCE);
+
+                    //reachable.push(starting_city);
+
+                    let answer = DISTANCE;
+
+                    responseData.answer_data.push({
+                        'id':element.ID,
+                        'answer':answer
+                    });
+                });
+                console.log(responseData);
+                let xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = ( ) => {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        console.log(xhr.response);
+                    }
+                }
+                xhr.open('POST','http://bitkozpont.mik.uni-pannon.hu/2024/answer.php',true)
+                xhr.send(JSON.stringify(responseData));
+            }
+        }
+        xhttp.open('POST','http://bitkozpont.mik.uni-pannon.hu/2024/gettasks.php',true);
+        xhttp.send(JSON.stringify(
+            {
+                id:'6',
+                teamcode:'be98b0b567b9887e75e5'
+            }
+        ));
+    }
+    index();
+</script>
+</html>
