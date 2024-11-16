@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tasks</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      crossorigin="anonymous"
+    />
+  </head>
+  <body>
+    <div class="container my-4">
+      <h1 class="text-center">Tasks</h1>
+      <div class="mb-3">
+        <label for="teamcode" class="form-label">Team Code</label>
+        <input
+          type="text"
+          id="teamcode"
+          class="form-control"
+          placeholder="Enter your team code"
+          value="be98b0b567b9887e75e5"
+        />
+        <button id="loadTasks" class="btn btn-primary mt-2">
+          Start Taskmanager
+        </button>
+      </div>
+
+      <div class="row">
+        <div class="col-md-4">
+          <h3>Opened Tasks</h3>
+          <ul id="openTasks" class="list-group"></ul>
+        </div>
+        <div class="col-md-4">
+          <h3>Completed Tasks</h3>
+          <ul id="completedTasks" class="list-group"></ul>
+        </div>
+        <div class="col-md-4">
+          <h3>Locked Tasks</h3>
+          <ul id="lockedTasks" class="list-group"></ul>
+        </div>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
