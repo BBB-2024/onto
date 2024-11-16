@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+</body>
+
+<script>
+  class Scenario {
+    constructor(inputData, result) {
+      this.data = inputData;
+      this.result = result;
+    }
+  }
+
+  let scenarios=[];
+
+  function deJaVu(data) {
+    for (let i = 0; i < scenarios.length; i++) {
+      if(scenarios[i].data == data){
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function getScenrio(data){
+    for (let i = 0; i < scenarios.length; i++) {
+      if(scenarios[i].data == data){
+        return scenarios[i];
+      }
+    }
+    return null;
+  }
+    function index() { 
+      function makeRequest() {
+        return new Promise((resolve, reject) => {
+          let xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = () => {
+            if (xhttp.readyState == 4 && xhttp.status == 200) {
+                let response = JSON.parse(xhttp.response);
+                console.log(response);
+                let responseData = {
+                    original_data:response.data,
+                    id:response.data.ID,
+                    teamcode:"be98b0b567b9887e75e5",
+                    original_hash:response.hash,
+                    answer_data:[]
+                };
+                if(deJaVu(response.data)){
+
+                  responseData.answer_data.push({
+                        'id':element.ID,
+                        'answer':getScenrio(data).answer
+                  });
+                }
+                else{
+
+                
+                response.data.questions.forEach((element)=>{
+                    let question = element;
+                    let varosok = question.params.map.cities;
+                    let starting_city = question.params.starting_city;
+                    let battery_size = question.params.battery_size;
+                    let tour = question.params.tour;
+                    let DISTANCE = 1;
+
+                    function getVarosByName(name){
+                      for (let i = 0; i < varosok.length; i++) {
+                        if(varosok[i].name == name){
+                          return varosok[i];
+                        }
+                      }
+                    }
+                    
+                    let currentCity = getVarosByName(starting_city);
+                    for (let i = 0; i < tour.length; i++) {
+                      for (const key in currentCity.distances) {
+                        if (Object.prototype.hasOwnProperty.call(currentCity.distances, key)) {
+                          const dis = currentCity.distances[key];
+                          if(key == tour[i]){
+                            DISTANCE++;
+                            battery_size -= dis;
+                            currentCity = getVarosByName(key);
+                            break;
+                          }
+                        }
+                      }
+                    }
+                    
+                    if(battery_size <= 0){
+                      DISTANCE = -1;
+                    }
+
+                    let answer = [];
+                    answer.push(DISTANCE);
+
+                    responseData.answer_data.push({
+                        'id':element.ID,
+                        'answer':answer
+                    });
+                });
+
+              }
+                console.log(responseData);
+                let xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = ( ) => {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        console.log(xhr.response);
+                    }
+                }
+                xhr.open('POST','http://bitkozpont.mik.uni-pannon.hu/2024/answer.php',true)
+                xhr.send(JSON.stringify(responseData));
+                resolve(xhr.responseText);
+            }
+        }
+        xhttp.open('POST','http://bitkozpont.mik.uni-pannon.hu/2024/gettasks.php',true);
+        xhttp.send(JSON.stringify(
+            {
+                id:'13',
+                teamcode:'be98b0b567b9887e75e5'
+            }
+        ));
+        });
+      }
+
+      makeRequest();
+      /*Promise.all([
+        makeRequest(),
+      ])
+      .then(responses => {
+          console.log("Request Finished!");
+          console.log(scenarios);
+          // After all requests finish, call index again
+          index();
+      })
+      .catch(error => {
+          console.error("One or more requests failed:", error);
+      });*/
+        
+    }
+index();
+
+</script>
+</html>
