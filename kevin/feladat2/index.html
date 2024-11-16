@@ -26,9 +26,9 @@
                     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
                     question.params.map.cities.forEach((city) => {
                         //ctx.beginPath();
-                        const grad = ctx.createRadialGradient(city.position.x * scale, city.position.y * scale, city.size * scale * 2, city.position.x * scale, city.position.y * scale, city.size * scale * 200);
+                        const grad = ctx.createRadialGradient(city.position.x * scale, city.position.y * scale, city.size * 10, city.position.x * scale, city.position.y * scale, city.size * 100);
                         grad.addColorStop(0, `rgb(255 0 0)`);
-                        grad.addColorStop(1, "rgb(0 0 0 / 0%)");
+                        grad.addColorStop(1, "rgb(255 255 255 / 0%)");
                         ctx.fillStyle = grad;
                         ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
                         //ctx.stroke();
