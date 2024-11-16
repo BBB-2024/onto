@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>feladat12</title>
+    </head>
+    <body>
+        <script>
+            function index() {
+                let xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = () => {
+                    if (xhttp.readyState == 4 && xhttp.status == 200) {
+                        let response = JSON.parse(xhttp.response);
+                        console.log(response);
+                        let responseData = {
+                            original_data: response.data,
+                            id: response.data.ID,
+                            teamcode: "be98b0b567b9887e75e5",
+                            original_hash: response.hash,
+                            answer_data: [],
+                        };
+                        response.data.questions.forEach((question) => {
+                            console.log("Processing question ", question.order);
+                            let pts = [];
+
+                            if (question.question_type === "COMP" && question.params.type === "ROADGRAPH") {
+                                const cities = question.params.map.cities;
+                                const roads = question.params.map.roads;
+                                console.log(cities[0].position);
+                                // Add all cities
+                                for (let k = 0; k < cities.length; k++) {
+                                    const city = cities[k];
+                                    pts.push(city.position);
+                                }
+
+                                //answer.push("roadEndpoint");
+
+                                // Collect all road start and end points
+                                const roadEndpoints = [];
+                                roads.forEach((road) => {
+                                    const start = road.tiles[0];
+                                    const end = road.tiles[road.tiles.length - 1];
+                                    pts.push(start);
+                                    pts.push(end);
+                                });
+
+                                //answer.push("intersections");
+
+                                const tileMap = new Map();
+
+                                roads.forEach((road) => {
+                                    road.tiles.forEach((tile) => {
+                                        const key = `${tile.x},${tile.y}`;
+                                        if (!tileMap.has(key)) {
+                                            tileMap.set(key, []);
+                                        }
+                                        tileMap.get(key).push(road.id);
+                                    });
+                                });
+
+                                // Collect intersections
+                                tileMap.forEach((roadIds, key) => {
+                                    if (roadIds.length > 1) {
+                                        // Intersection found, extract the coordinates
+                                        const [x, y] = key.split(",").map(Number);
+                                        pts.push({ x, y });
+                                    }
+                                });
+                            }
+                            //answer.splice(0, 1);
+                            pts = Array.from(new Set(pts.map(JSON.stringify))).map(JSON.parse);
+                            console.log(pts);
+
+                            responseData.answer_data.push({
+                                id: question.ID,
+                                answer: { points: pts },
+                            });
+                        });
+                        console.log(responseData);
+                        let xhr = new XMLHttpRequest();
+                        xhr.onreadystatechange = () => {
+                            if (xhr.readyState == 4 && xhr.status == 200) {
+                                console.log(xhr.response);
+                            }
+                        };
+                        xhr.open("POST", "http://bitkozpont.mik.uni-pannon.hu/2024/answer.php", true);
+                        xhr.send(JSON.stringify(responseData));
+                    }
+                };
+                xhttp.open("POST", "http://bitkozpont.mik.uni-pannon.hu/2024/gettasks.php", true);
+                xhttp.send(
+                    JSON.stringify({
+                        id: "12",
+                        teamcode: "be98b0b567b9887e75e5",
+                    })
+                );
+            }
+            index();
+        </script>
+    </body>
+</html>
