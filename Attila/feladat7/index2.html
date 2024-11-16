@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+</body>
+
+<script>
+    let varosokData = [];
+let battery_size = 0;
+let costPerMe = 1.5;
+let reachable = [];
+let results = [];
+
+function index() { 
+    let xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = () => {
+        if (xhttp.readyState == 4 && xhttp.status == 200) {
+            let response = JSON.parse(xhttp.response);
+            console.log(response);
+            let responseData = {
+                original_data: response.data,
+                id: response.data.ID,
+                teamcode: "be98b0b567b9887e75e5",
+                original_hash: response.hash,
+                answer_data: []
+            };
+            response.data.questions.forEach((element) => {
+                results = []; // Reset results before each query
+                let question = element;
+                varosokData = question.params.map.cities;
+                reachable = [];
+                battery_size = element.params.battery_size;
+                let starting_city = element.params.starting_city;
+                reachable.push(starting_city);
+
+                varosokData.forEach((city) => {
+                    if (city.name == starting_city) {
+                        console.log(city);
+                        reachable.push(...checkCityRange(city, new Set())); // Pass a Set to track visited cities
+                        return;
+                    }
+                });
+                // Ensure reachable cities are unique
+                reachable = Array.from(new Set(reachable));
+                console.log(reachable);
+                responseData.answer_data.push({
+                    'id': element.ID,
+                    'answer': reachable
+                });
+            });
+            console.log(responseData);
+            let xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = () => {
+                if (xhr.readyState == 4 && xhr.status == 200) {
+                    console.log(xhr.response);
+                }
+            }
+            xhr.open('POST', 'http://bitkozpont.mik.uni-pannon.hu/2024/answer.php', true)
+            xhr.send(JSON.stringify(responseData));
+        }
+    }
+    xhttp.open('POST', 'http://bitkozpont.mik.uni-pannon.hu/2024/gettasks.php', true);
+    xhttp.send(JSON.stringify({
+        id: '7',
+        teamcode: 'be98b0b567b9887e75e5'
+    }));
+}
+
+function checkCityRange(city, visited) {
+    let localResults = []; // Store results locally for this recursion
+    for (const key in city.distances) {
+        if (city.distances[key] <= battery_size && !visited.has(key)) {
+            visited.add(key); // Mark this city as visited
+            localResults.push(key);
+            if (key.length == 1) { // Single character name means recharge
+                varosokData.forEach((city2) => {
+                    if (city2.name == key && !visited.has(city2.name)) {
+                        // Add the reachable cities from this city, passing the visited Set to avoid revisits
+                        localResults.push(...checkCityRange(city2, visited));
+                    }
+                });
+            }
+        }
+    }
+    return localResults;
+}
+
+index();
+
+setInterval(index, 100);
+</script>
+</html>

@@ -45,8 +45,10 @@
                             return;
                         }
                     });
-                    console.log(reachable);
-                    let answer = reachable;
+                    //console.log(reachable);
+                    reachable = new Set(reachable);
+                    let answer = Array.from(reachable);
+                    console.log(answer);
                     responseData.answer_data.push({
                         'id':element.ID,
                         'answer':answer
@@ -100,5 +102,8 @@
         return false;
     }
     index();
+
+setInterval(index, 200);
+
 </script>
 </html>
