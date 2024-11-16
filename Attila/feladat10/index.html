@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+</body>
+
+<script>
+    function index() { 
+        let xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = () => {
+            if (xhttp.readyState == 4 && xhttp.status == 200) {
+                let response = JSON.parse(xhttp.response);
+                console.log(response);
+                let responseData = {
+                    original_data:response.data,
+                    id:response.data.ID,
+                    teamcode:"be98b0b567b9887e75e5",
+                    original_hash:response.hash,
+                    answer_data:[]
+                };
+                response.data.questions.forEach((element)=>{
+                    let answer = {};
+                    element.params.map.cities.forEach((city)=>{
+                        if (city.name.length == 1) {
+                            answer[city.name] = [city.name];
+                        }
+                    });
+                    element.params.map.cities.forEach((city)=>{
+                        let closestTo = "";
+                        let distanceMax = 10000000;
+                        if (city.name.length>1) {
+                            for (const key in city.distances) {
+                                console.log(key);
+                                if(key.length == 1 && city.distances[key] < distanceMax) {
+                                    distanceMax = city.distances[key];
+                                    closestTo = key;
+                                }
+                            }
+                            try {
+                                console.log(closestTo);
+                                answer[closestTo].push(city.name);
+                            } catch(e) {
+                                console.log(e);
+                            }
+                        }
+                    });
+                    console.log(answer);
+                    responseData.answer_data.push({
+                        'id':element.ID,
+                        'answer':answer
+                    });
+                });
+                console.log(responseData);
+                let xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = ( ) => {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        console.log(xhr.response);
+                    }
+                }
+                xhr.open('POST','http://bitkozpont.mik.uni-pannon.hu/2024/answer.php',true)
+                xhr.send(JSON.stringify(responseData));
+            }
+        }
+        xhttp.open('POST','http://bitkozpont.mik.uni-pannon.hu/2024/gettasks.php',true);
+        xhttp.send(JSON.stringify(
+            {
+                id:'10',
+                teamcode:'be98b0b567b9887e75e5'
+            }
+        ));
+    }
+    index();
+</script>
+</html>

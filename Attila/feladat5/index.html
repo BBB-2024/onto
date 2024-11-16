@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+</body>
+<script>
+
+    function index() { 
+        let xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = () => {
+            if (xhttp.readyState == 4 && xhttp.status == 200) {
+                let response = JSON.parse(xhttp.response);
+                console.log(response);
+                let responseData = {
+                    original_data:response.data,
+                    id:response.data.ID,
+                    teamcode:"be98b0b567b9887e75e5",
+                    original_hash:response.hash,
+                    answer_data:[]
+                };
+                let answer = "";
+                response.data.questions.forEach((question)=>{
+                    let citiesCloesetDistance = 10000000;
+                    let mostDistance = 0;
+                    question.params.map.cities.forEach((city)=>{
+                        for (const key in city.distances) {
+                            if (citiesCloesetDistance > city.distances[key]) {
+                                citiesCloesetDistance = city.distances[key];
+                            }
+                        }
+                        if (mostDistance < citiesCloesetDistance) {
+                            mostDistance = citiesCloesetDistance;
+                            answer = city.name;
+                        }
+                        citiesCloesetDistance = 10000000;
+                    });
+                    console.log(mostDistance);
+                    responseData.answer_data.push(
+                        {
+                            id:question.ID,
+                            answer:answer
+                        }
+                    );
+                    answer = "";
+                    mostDistance = 100000;
+                });
+                console.log(responseData);
+                let xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = ( ) => {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        console.log(xhr.response);
+                    }
+                }
+                xhr.open('POST','http://bitkozpont.mik.uni-pannon.hu/2024/answer.php',true)
+                xhr.send(JSON.stringify(responseData));
+            }
+        }
+        xhttp.open('POST','http://bitkozpont.mik.uni-pannon.hu/2024/gettasks.php',true);
+        xhttp.send(JSON.stringify(
+            {
+                id:'5',
+                teamcode:'be98b0b567b9887e75e5'
+            }
+        ));
+    }
+    index();
+</script>
+</html>
