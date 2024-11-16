@@ -10,8 +10,36 @@
 </body>
 
 <script>
+  class Scenario {
+    constructor(inputData, result) {
+      this.data = inputData;
+      this.result = result;
+    }
+  }
+
+  let scenarios=[];
+
+  function deJaVu(data) {
+    for (let i = 0; i < scenarios.length; i++) {
+      if(scenarios[i].data == data){
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function getScenrio(data){
+    for (let i = 0; i < scenarios.length; i++) {
+      if(scenarios[i].data == data){
+        return scenarios[i];
+      }
+    }
+    return null;
+  }
     function index() { 
-        let xhttp = new XMLHttpRequest();
+      function makeRequest() {
+        return new Promise((resolve, reject) => {
+          let xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = () => {
             if (xhttp.readyState == 4 && xhttp.status == 200) {
                 let response = JSON.parse(xhttp.response);
@@ -23,6 +51,16 @@
                     original_hash:response.hash,
                     answer_data:[]
                 };
+                if(deJaVu(response.data)){
+
+                  responseData.answer_data.push({
+                        'id':element.ID,
+                        'answer':getScenrio(data).answer
+                  });
+                }
+                else{
+
+                
                 response.data.questions.forEach((element)=>{
                     let question = element;
                     let varosok = question.params.map.cities;
@@ -30,16 +68,20 @@
                     let city2p;
                     let DISTANCE = 0;
 
-                    // Heuristic function: Chebyshev distance (since we can move diagonally)
                     function heuristic(a, b) {
                       return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
                     }
 
-                    // A* Algorithm to find the shortest path length
+                    // Dot product to check if a direction leads towards or away from the goal
+                    function dotProduct(a, b) {
+                      return a.x * b.x + a.y * b.y;
+                    }
+
+                    // A* Algorithm with Directional Check to find the shortest path length
                     function findShortestPathLength(city1, city2) {
                       const openList = [];  // Priority queue for nodes to explore
                       const closedList = new Set();  // Set of nodes already evaluated
-                    
+
                       // Start node
                       const startNode = {
                         x: city1.x,
@@ -49,10 +91,10 @@
                         f: heuristic(city1, city2),  // Total cost f = g + h
                         parent: null  // To reconstruct the path
                       };
-                  
+                    
                       // Add start node to open list
                       openList.push(startNode);
-                  
+                    
                       // Directions for horizontal, vertical, and diagonal movement with respective costs
                       const directions = [
                         { x: 0, y: -1, cost: 1 },  // up
@@ -64,21 +106,27 @@
                         { x: 1, y: 1, cost: Math.sqrt(2) },   // bottom-right diagonal
                         { x: -1, y: 1, cost: Math.sqrt(2) }   // bottom-left diagonal
                       ];
-                  
+                    
                       // Main loop of the A* algorithm
                       while (openList.length > 0) {
                         // Sort open list by f value and pop the node with the lowest f
                         openList.sort((a, b) => a.f - b.f);
                         const currentNode = openList.shift();
-                    
+                      
                         // If we reached the goal (city2), return the path length
                         if (currentNode.x === city2.x && currentNode.y === city2.y) {
                           return currentNode.g;  // Return the g-value which represents the path length
                         }
-                    
+                      
                         // Add the current node to the closed list
                         closedList.add(`${currentNode.x},${currentNode.y}`);
-                    
+                      
+                        // Calculate the direction vector towards the goal
+                        const goalDirection = {
+                          x: city2.x - currentNode.x,
+                          y: city2.y - currentNode.y
+                        };
+                      
                         // Explore neighbors
                         for (const direction of directions) {
                           const neighbor = {
@@ -89,19 +137,33 @@
                             parent: currentNode
                           };
                           neighbor.f = neighbor.g + neighbor.h;
-                      
+                        
                           // If the neighbor is in the closed list, skip it
                           if (closedList.has(`${neighbor.x},${neighbor.y}`)) {
                             continue;
                           }
-                      
+                        
+                          // Calculate the move vector (current to neighbor)
+                          const moveVector = {
+                            x: neighbor.x - currentNode.x,
+                            y: neighbor.y - currentNode.y
+                          };
+                        
+                          // Check if the direction moves away from the goal using dot product
+                          const dp = dotProduct(goalDirection, moveVector);
+
+                          // If the move leads away from the goal, skip this neighbor
+                          if (dp < 0) {
+                            continue;
+                          }
+                        
                           // If the neighbor is not in the open list or a better g value is found, add it to the open list
                           if (!openList.some(node => node.x === neighbor.x && node.y === neighbor.y)) {
                             openList.push(neighbor);
                           }
                         }
                       }
-                  
+                    
                       // If no path is found
                       return -1;  // Return -1 if no path exists
                     }
@@ -127,17 +189,17 @@
                       for (const key in varosok[i].distances) {
                         if (Object.prototype.hasOwnProperty.call(varosok[i].distances, key)) {
                           const distance = varosok[i].distances[key];
-                          console.log("Feladat: " + question.ID);
-                          console.log("Varos: " + i);
-                          console.log("Distance from " + key + ": " + distance);
+                          //console.log("Feladat: " + question.ID);
+                          //console.log("Varos: " + i);
+                          //console.log("Distance from " + key + ": " + distance);
                           const city1 = { x: varosok[i].position.x, y: varosok[i].position.y };  // Starting city
                           const city2 = { x: getVarosByName(key).position.x, y: getVarosByName(key).position.y };  // Destination city
-                          //let shortestPathLength = findShortestPathLength(city1, city2);
-                          let shortestPathLength = findShortestPathPitagoras(city1, city2);
-                          console.log("Shortest path lenght: " + shortestPathLength);
+                          let shortestPathLength = findShortestPathLength(city1, city2);
+                          //let shortestPathLength = findShortestPathPitagoras(city1, city2);
+                          //console.log("Shortest path lenght: " + shortestPathLength);
                           let ratio = distance-shortestPathLength;
-                          console.log(ratio);
-                          console.log(worstRatio);
+                          //console.log(ratio);
+                          //console.log(worstRatio);
 
                           if(ratio > worstRatio){
                             worstRatio = ratio;
@@ -152,13 +214,16 @@
                     let answer = [];
                     answer.push(city1p.name);
                     answer.push(city2p.name);
-                    console.log(answer);
+                    //console.log(answer);
+                    scenarios.push(new Scenario(response.data, answer));
 
                     responseData.answer_data.push({
                         'id':element.ID,
                         'answer':answer
                     });
                 });
+
+              }
                 console.log(responseData);
                 let xhr = new XMLHttpRequest();
                 xhr.onreadystatechange = ( ) => {
@@ -168,6 +233,7 @@
                 }
                 xhr.open('POST','http://bitkozpont.mik.uni-pannon.hu/2024/answer.php',true)
                 xhr.send(JSON.stringify(responseData));
+                resolve(xhr.responseText);
             }
         }
         xhttp.open('POST','http://bitkozpont.mik.uni-pannon.hu/2024/gettasks.php',true);
@@ -177,7 +243,24 @@
                 teamcode:'be98b0b567b9887e75e5'
             }
         ));
+        });
+      }
+
+      Promise.all([
+        makeRequest(),
+      ])
+      .then(responses => {
+          console.log("Request Finished!");
+          console.log(scenarios);
+          // After all requests finish, call index again
+          index();
+      })
+      .catch(error => {
+          console.error("One or more requests failed:", error);
+      });
+        
     }
-    index();
+index();
+
 </script>
 </html>
