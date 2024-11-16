@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    
+</body>
+
+<script>
+    function index() { 
+        let xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = () => {
+            if (xhttp.readyState == 4 && xhttp.status == 200) {
+                let response = JSON.parse(xhttp.response);
+                console.log(response);
+                let responseData = {
+                    original_data:response.data,
+                    id:response.data.ID,
+                    teamcode:"be98b0b567b9887e75e5",
+                    original_hash:response.hash,
+                    answer_data:[]
+                };
+                response.data.questions.forEach((element)=>{
+                    let question = element;
+                    let varosok = question.params.map.cities;
+                    let city1p;
+                    let city2p;
+                    let DISTANCE = 0;
+
+                    for (let i = 0; i < varosok.length; i++) {
+                        if(varosok[i].name == question.params.city1){
+                            city1p = varosok[i];
+                        }
+                        if(varosok[i].name == question.params.city2){
+                            city2p = varosok[i];
+                        }
+                    }
+
+                    // Heuristic function: Chebyshev distance (since we can move diagonally)
+                    function heuristic(a, b) {
+                      return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+                    }
+
+                    // A* Algorithm to find the shortest path length
+                    function findShortestPathLength(city1, city2) {
+                      const openList = [];  // Priority queue for nodes to explore
+                      const closedList = new Set();  // Set of nodes already evaluated
+                    
+                      // Start node
+                      const startNode = {
+                        x: city1.x,
+                        y: city1.y,
+                        g: 0,  // Cost from start node
+                        h: heuristic(city1, city2),  // Heuristic to the goal
+                        f: heuristic(city1, city2),  // Total cost f = g + h
+                        parent: null  // To reconstruct the path
+                      };
+                  
+                      // Add start node to open list
+                      openList.push(startNode);
+                  
+                      // Directions for horizontal, vertical, and diagonal movement with respective costs
+                      const directions = [
+                        { x: 0, y: -1, cost: 1 },  // up
+                        { x: 1, y: 0, cost: 1 },   // right
+                        { x: 0, y: 1, cost: 1 },   // down
+                        { x: -1, y: 0, cost: 1 },  // left
+                        { x: -1, y: -1, cost: Math.sqrt(2) }, // top-left diagonal
+                        { x: 1, y: -1, cost: Math.sqrt(2) },  // top-right diagonal
+                        { x: 1, y: 1, cost: Math.sqrt(2) },   // bottom-right diagonal
+                        { x: -1, y: 1, cost: Math.sqrt(2) }   // bottom-left diagonal
+                      ];
+                  
+                      // Main loop of the A* algorithm
+                      while (openList.length > 0) {
+                        // Sort open list by f value and pop the node with the lowest f
+                        openList.sort((a, b) => a.f - b.f);
+                        const currentNode = openList.shift();
+                    
+                        // If we reached the goal (city2), return the path length
+                        if (currentNode.x === city2.x && currentNode.y === city2.y) {
+                          return currentNode.g;  // Return the g-value which represents the path length
+                        }
+                    
+                        // Add the current node to the closed list
+                        closedList.add(`${currentNode.x},${currentNode.y}`);
+                    
+                        // Explore neighbors
+                        for (const direction of directions) {
+                          const neighbor = {
+                            x: currentNode.x + direction.x,
+                            y: currentNode.y + direction.y,
+                            g: currentNode.g + direction.cost,  // Update g-value with direction's cost
+                            h: heuristic(city2, { x: currentNode.x + direction.x, y: currentNode.y + direction.y }),
+                            parent: currentNode
+                          };
+                          neighbor.f = neighbor.g + neighbor.h;
+                      
+                          // If the neighbor is in the closed list, skip it
+                          if (closedList.has(`${neighbor.x},${neighbor.y}`)) {
+                            continue;
+                          }
+                      
+                          // If the neighbor is not in the open list or a better g value is found, add it to the open list
+                          if (!openList.some(node => node.x === neighbor.x && node.y === neighbor.y)) {
+                            openList.push(neighbor);
+                          }
+                        }
+                      }
+                  
+                      // If no path is found
+                      return -1;  // Return -1 if no path exists
+                    }
+
+                    // Example usage:
+                    const city1 = { x: city1p.position.x, y: city1p.position.y };  // Starting city
+                    const city2 = { x: city2p.position.x, y: city2p.position.y };  // Destination city
+
+                    let shortestPathLength = findShortestPathLength(city1, city2);
+
+                    if (shortestPathLength !== -1) {
+                      console.log("Shortest path length:", shortestPathLength);
+                    } else {
+                      console.log("No path found.");
+                    }
+
+
+                    
+                    //console.log(shortestPathLength);
+                    //reachable.push(starting_city);
+
+                    let answer = shortestPathLength.toFixed(2);
+
+                    responseData.answer_data.push({
+                        'id':element.ID,
+                        'answer':answer
+                    });
+                });
+                console.log(responseData);
+                let xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = ( ) => {
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                        console.log(xhr.response);
+                    }
+                }
+                xhr.open('POST','http://bitkozpont.mik.uni-pannon.hu/2024/answer.php',true)
+                xhr.send(JSON.stringify(responseData));
+            }
+        }
+        xhttp.open('POST','http://bitkozpont.mik.uni-pannon.hu/2024/gettasks.php',true);
+        xhttp.send(JSON.stringify(
+            {
+                id:'6',
+                teamcode:'be98b0b567b9887e75e5'
+            }
+        ));
+    }
+    index();
+</script>
+</html>
