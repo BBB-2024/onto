@@ -26,20 +26,23 @@
                             answer = [];
                             //console.log(question.params.road_id);
                             //console.log(question.params.map.roads);
-                            question.params.map.roads.forEach((road) => {
+                            roads.forEach((road) => {
                                 //console.log("road ", road);
                                 for (let i = 0; i < road.tiles.length; i++) {
                                     //console.log("road.tiles ", road.tiles);
                                     const tile = road.tiles[i];
                                     //console.log("NUM ", question.params.map.roads[question.params.road_id - 1].tiles.length);
-                                    for (let j = 0; j < question.params.map.roads[question.params.road_id - 1].tiles.length; j++) {
-                                        const target = question.params.map.roads[question.params.road_id - 1].tiles[j];
-                                        //console.log("target", target);
-                                        //console.log("tile ", tile);
-                                        if (tile.x == target.x && tile.y == target.y) {
-                                            console.log("tile ", question.params.road_id, road.id);
-                                            if (!answer.includes(road.id) && question.params.road_id != road.id) {
-                                                answer.push(road.id);
+                                    for (let g = 0; g < roads.length; g++) {
+                                        const h = roads[g];
+                                        for (let j = 0; j < roads[h].tiles.length; j++) {
+                                            const target = roads[h].tiles[j];
+                                            //console.log("target", target);
+                                            //console.log("tile ", tile);
+                                            if (tile.x == target.x && tile.y == target.y) {
+                                                console.log("tile ", h, road.id);
+                                                if (!answer.includes(road.id) && h != road.id) {
+                                                    answer.push(road.id);
+                                                }
                                             }
                                         }
                                     }
